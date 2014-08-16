@@ -15,11 +15,13 @@ import (
 
 var cmdSave = &Command{
 	Usage: "save [-r] [-copy=false] [packages]",
-	Short: "list and copy dependencies into Godeps",
+	Short: "list and copy packages into Godeps",
 	Long: `
-Save writes a list of the dependencies of the named packages along
-with the exact source control revision of each dependency, and copies
-their source code into a subdirectory.
+
+Save writes a list of the named packages and their dependencies along
+with the exact source control revision of each package, and copies
+their source code into a subdirectory. Packages inside . are excluded
+from the list to be copied.
 
 The dependency list is a JSON document with the following structure:
 
@@ -34,7 +36,7 @@ The dependency list is a JSON document with the following structure:
 		}
 	}
 
-Any dependencies already present in the list will be left unchanged.
+Any packages already present in the list will be left unchanged.
 To update a dependency to a newer revision, use 'godep update'.
 
 If -r is given, import statements will be rewritten to refer
@@ -43,7 +45,7 @@ directly to the copied source code.
 If -copy=false is given, the list alone is written to file Godeps.
 
 Otherwise, the list is written to Godeps/Godeps.json, and source
-code for all dependencies is copied into Godeps/_workspace.
+code for the packages is copied into Godeps/_workspace.
 
 For more about specifying packages, see 'go help packages'.
 `,
@@ -98,7 +100,7 @@ func save(pkgs []string) error {
 	if err != nil {
 		return err
 	}
-	err = gnew.Load(a)
+	err = gnew.Load(a, dot[0].ImportPath)
 	if err != nil {
 		return err
 	}
